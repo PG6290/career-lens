@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.services.ai_service import analyze_resume
+from app.services.ai_services import analyze_resume
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 
