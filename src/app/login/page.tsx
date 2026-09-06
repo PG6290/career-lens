@@ -39,13 +39,6 @@ export default function LoginPage() {
             A dark, recruiter-grade workspace for scraping roles, scoring your resume, and closing skill gaps
             before you apply.
           </p>
-          <div className="grid" style={{ marginTop: 28 }}>
-            <div className="card card-pad">
-              <p className="soft">Today’s snapshot</p>
-              <b style={{ fontSize: 28 }}>87% match</b>
-              <p className="muted">Software Engineer · Google · Bangalore</p>
-            </div>
-          </div>
         </div>
         <div className="auth-form">
           <div className="tabs">
