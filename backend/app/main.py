@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.database import engine, Base
 from app.models.job import Job
+from app.routes.jobs import router as jobs_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -15,3 +16,6 @@ def home():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+app.include_router(jobs_router)
