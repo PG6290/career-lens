@@ -1,24 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+from datetime import datetime, timedelta, timezone
 from jose import jwt
-from datetime import datetime, timedelta
+import bcrypt
 
 from app.database import get_db
 from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-SECRET_KEY = "careerlens-secret-key"
+SECRET_KEY = "careerlens-secret-key-change-this-later"
 ALGORITHM = "HS256"
 
 
 def create_token(user_id: int):
     payload = {
         "user_id": user_id,
-        "exp": datetime.utcnow() + timedelta(hours=24)
+        "exp": datetime.now(timezone.utc) + timedelta(hours=24)
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -31,6 +29,7 @@ def signup(
     password: str,
     db: Session = Depends(get_db)
 ):
+    # Check if user already exists
     existing_user = db.query(User).filter(User.email == email).first()
 
     if existing_user:
@@ -39,8 +38,13 @@ def signup(
             detail="Email already registered"
         )
 
-    hashed_password = pwd_context.hash(password)
+    # Hash password
+    hashed_password = bcrypt.hashpw(
+        password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
 
+    # Create user
     user = User(
         name=name,
         email=email,
@@ -63,6 +67,7 @@ def login(
     password: str,
     db: Session = Depends(get_db)
 ):
+    # Find user
     user = db.query(User).filter(User.email == email).first()
 
     if not user:
@@ -71,12 +76,19 @@ def login(
             detail="Invalid email or password"
         )
 
-    if not pwd_context.verify(password, user.password):
+    # Verify password
+    password_correct = bcrypt.checkpw(
+        password.encode("utf-8"),
+        user.password.encode("utf-8")
+    )
+
+    if not password_correct:
         raise HTTPException(
             status_code=401,
             detail="Invalid email or password"
         )
 
+    # Create JWT token
     token = create_token(user.id)
 
     return {
